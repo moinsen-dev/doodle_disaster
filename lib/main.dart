@@ -1,122 +1,300 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'presentation/screens/test_drawing_screen.dart';
+import 'presentation/navigation/app_router.dart';
+import 'presentation/navigation/routes.dart';
+import 'presentation/providers/providers.dart';
+import 'presentation/widgets/join_game_dialog.dart';
+import 'presentation/animations/page_transitions.dart';
 
+/// The entry point of our Doodle Disaster game.
+/// 
+/// Notice how we wrap our entire app with ProviderScope? This is like
+/// setting up the electrical wiring in a house before you can plug in
+/// any appliances. ProviderScope creates the container that holds all
+/// our app's state, making it available throughout the widget tree.
+/// 
+/// Think of ProviderScope as the foundation that enables Riverpod's
+/// magic - without it, our providers (state holders) have nowhere to live.
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: DoodleDisasterApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+/// The root widget of our application.
+/// 
+/// This widget sets up the overall theme and navigation structure.
+/// It's like the frame of a house - it doesn't have much detail itself,
+/// but it holds everything else together.
+class DoodleDisasterApp extends StatelessWidget {
+  const DoodleDisasterApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Doodle Disaster',
+      
+      // Let's create a fun, playful theme that matches our game's spirit
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // Using Material 3 (Material You) for modern design
+        useMaterial3: true,
+        
+        // A bright, playful color scheme
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+        ),
+        
+        // Large, readable text for game elements
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        
+        // Rounded buttons that feel friendly and approachable
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+              vertical: 16,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      
+      home: const HomeScreen(),
+      onGenerateRoute: AppRouter.generateRoute,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+/// The home screen where players can create or join games.
+/// 
+/// This is the first screen players see when they open the app.
+/// Think of it as the lobby of a game center - from here, players
+/// can either start hosting a new game or join an existing one.
+/// 
+/// We're using ConsumerWidget instead of StatelessWidget because
+/// this widget will need to read and react to state changes from
+/// our Riverpod providers.
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Extract theme data for consistent styling
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Container(
+        // A gradient background makes the app feel more dynamic and fun
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary.withValues(alpha: 0.1),
+              theme.colorScheme.secondary.withValues(alpha: 0.1),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                
+                // Game title with playful styling and animation
+                AnimatedGameCard(
+                  delay: const Duration(milliseconds: 300),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Doodle',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      Text(
+                        'Disaster',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontSize: 56, // Slightly larger for emphasis
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Tagline with animation
+                AnimatedGameCard(
+                  delay: const Duration(milliseconds: 600),
+                  child: Text(
+                    'Draw it. Pass it. Watch it fall apart!',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                
+                const Spacer(),
+                
+                // Main action buttons with animation
+                AnimatedGameCard(
+                  delay: const Duration(milliseconds: 900),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: AnimatedGameButton(
+                          onPressed: () async {
+                            // Show loading indicator with loading dots
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                child: Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const AnimatedLoadingDots(),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Creating game...',
+                                        style: theme.textTheme.bodyLarge,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                            
+                            try {
+                              // Create a game session
+                              final roomCode = await ref.read(gameSessionProvider.notifier).createGame();
+                              if (context.mounted) {
+                                Navigator.of(context).pop(); // Close loading
+                                AppRouter.navigateTo(
+                                  context,
+                                  Routes.lobby,
+                                  arguments: {
+                                    RouteArguments.roomCode: roomCode,
+                                    RouteArguments.isHost: true,
+                                  },
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                Navigator.of(context).pop(); // Close loading
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to create game: $e'),
+                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                          child: const Text('Create Game'),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      SizedBox(
+                        width: double.infinity,
+                        child: AnimatedGameButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => const JoinGameDialog(),
+                            );
+                          },
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: theme.colorScheme.primary,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            child: const Center(
+                              child: Text('Join Game'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const Spacer(),
+                
+                // Settings button with animation
+                AnimatedGameCard(
+                  delay: const Duration(milliseconds: 1200),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Temporary test button
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            PageTransitions.slideFromBottom(const TestDrawingScreen()),
+                          );
+                        },
+                        child: const Text('Test Canvas'),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          AppRouter.navigateTo(context, Routes.settings);
+                        },
+                        icon: const Icon(Icons.settings),
+                        tooltip: 'Settings',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
